@@ -1,0 +1,35 @@
+---
+
+- name: Install project requirements
+  pip:
+    virtualenv: "{{ VIRTUALENV_PATH }}"
+    virtualenv_command: pyenv
+    requirements: "{{ APP_PROJ_PATH }}/requirements/prod.txt"
+
+- name: Run migrations (./manage.py migrate)
+  django_manage:
+    command: migrate
+    app_path: "{{ APP_PROJ_PATH }}"
+    virtualenv: "{{ VIRTUALENV_PATH }}"
+
+- name: Ensure that static and media folder exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ DEPLOY_USER }}"
+    group: "{{ DEPLOY_USER }}"
+  with_items:
+    - "{{ APP_STATIC_PATH }}"
+    - "{{ APP_MEDIA_PATH }}"
+
+- name: Collect static files
+  django_manage:
+    command: collectstatic
+    app_path: "{{ APP_PROJ_PATH }}"
+    virtualenv: "{{ VIRTUALENV_PATH }}"
+    link: yes
+
+- name: Remove read access of secret.json file from others (640)
+  file:
+    dest: "{{ APP_PROJ_PATH }}/{{ APP }}/settings/secret.json"
+    mode: 0640

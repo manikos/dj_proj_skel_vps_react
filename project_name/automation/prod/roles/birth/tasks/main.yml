@@ -1,0 +1,5 @@
+---
+
+- include_tasks: on_startup.yml
+
+- include_tasks: after_startup.yml

@@ -1,0 +1,34 @@
+---
+
+- name: "Colorize the prompt PS1 for {{ ROOT }} (make it bold red)"
+  lineinfile: dest="/{{ ROOT }}/.bashrc"
+              line="export PS1=\"\[\033[01;31m\]\u@\h\[\033[01;34m\] \w\$\[\033[00m\] \""
+  become: yes
+
+- name: "Colorize the prompt PS1 for {{ DEPLOY_USER }} (make it bold yellow)"
+  lineinfile: dest="{{ ansible_env.HOME }}/.bashrc"
+              line="export PS1=\"\[\033[01;33m\]\u@\h\[\033[01;34m\] \w\$\[\033[00m\] \""
+
+- name: "Create necessary dirs"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ DEPLOY_USER }}"
+    group: "{{ DEPLOY_USER }}"
+  with_items:
+    - "{{ APP_DIR_PATH }}"
+    - "{{ UWSGI_DIR_PATH }}"
+    - "{{ UWSGI_SOCKET_PATH }}"
+    - "{{ TMP_DIR_PATH }}"
+    - "{{ PYENV_DIR_NAME }}"
+  become: yes
+
+- name: Create hidden conf files
+  template:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/.{{ item[:-3] }}"
+    owner: "{{ DEPLOY_USER }}"
+    group: "{{ DEPLOY_USER }}"
+  with_items:
+    - vimrc.j2
+    - bash_aliases.j2

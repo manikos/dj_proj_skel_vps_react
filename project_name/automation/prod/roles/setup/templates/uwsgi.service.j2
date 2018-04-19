@@ -1,0 +1,12 @@
+[Unit]
+Description=uWSGI instance to serve {{ APP }} app
+Documentation=https://uwsgi-docs.readthedocs.io/en/latest/index.html
+
+[Service]
+ExecStartPre=-/bin/bash -c 'mkdir -p {{ UWSGI_SOCKET_PATH }}; chown {{ DEPLOY_USER }}:{{ DEPLOY_USER }} {{ UWSGI_SOCKET_PATH }}; gpasswd -a {{ NGINX_USER }} {{ DEPLOY_USER }}'
+ExecStart=/bin/bash -c 'source {{ VIRTUALENV_PATH }}/bin/activate; uwsgi {{ UWSGI_DIR_PATH }}/{{ UWSGI_INI_NAME }}'
+Restart=always
+KillSignal=SIGQUIT
+
+[Install]
+WantedBy=multi-user.target

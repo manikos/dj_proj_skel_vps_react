@@ -1,0 +1,51 @@
+active_ve="{{ VIRTUALENV_NAME }}"
+
+###########################
+#  VIRTUAL ENV SHORTCUTS  #
+###########################
+activate() {
+    if [[ $1 ]]; then
+        source {{ PYENV_DIR_PATH }}/{{ PYENV_VERSIONS_DIR_NAME }}/$1/bin/activate
+    fi
+}
+
+export -f activate
+
+
+###################
+#  GIT SHORTCUTS  #
+###################
+
+# Git Pull Origin Master (gpom) + restart uwsgi
+gpom() {
+    # cd to project {{ PROJ_NAME }} dir
+    cd {{ APP_PROJ_PATH }}
+
+    # pull from origin the latest changes
+    ssh-agent bash -c 'ssh-add {{ BB_ACCESS_KEYS_DIR_PATH }}/{{ BB_PRIVATE_KEY_NAME }}; git pull origin master'
+
+    # activate virtualenv
+    activate $active_ve
+
+    # install (any potential) requirements
+    pip install -r requirements/prod.txt
+
+    # Run migrations
+    python manage.py migrate
+
+    # Run collectstatic
+    python manage.py collectstatic --link --noinput
+
+    # Deactivate virtualenv
+    deactivate
+
+    # Restart uwsgi service (via systemd)
+    sudo systemctl restart uwsgi
+}
+
+export -f gpom
+
+##############################
+#  DJANGO PROJECT SHORTCUTS  #
+##############################
+alias createsuperuser='activate $active_ve && cd {{ APP_PROJ_PATH }} && python manage.py createsuperuser'

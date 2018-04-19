@@ -1,0 +1,118 @@
+---
+
+- name: Ensure Web server packages are installed
+  apt: name={{ item }} update_cache=yes
+  with_items:
+    - fail2ban
+    - nginx
+  become: yes
+
+################
+#   FAIL2BAN   #
+################
+
+- name: Configure fail2ban
+  template:
+    src: "jail.local.j2"
+    dest: "{{ FAIL2BAN_DIR_PATH }}/{{ FAIL2BAN_JAIL_FILENAME }}"
+    owner: "{{ ROOT }}"
+    group: "{{ ROOT }}"
+    mode: "0644"
+  become: yes
+
+
+#################
+#     NGINX     #
+#################
+
+- name: Get number of processor cores
+  shell: grep ^processor /proc/cpuinfo | wc -l
+  args:
+    executable: /bin/bash
+  register: num_cores
+
+- name: Get max number of concurrent processes per sec
+  shell: ulimit -n
+  args:
+    executable: /bin/bash
+  register: num_processes
+  
+- name: Copy local nginx.conf to remote nginx.conf
+  copy:
+    src: ../templates/nginx.conf.j2
+    dest: "{{ NGINX_CONF_PATH }}"
+    owner: "{{ ROOT }}"
+    group: "{{ ROOT }}"
+    mode: 0644
+  become: yes
+
+- name: Configure nginx.conf (worker_processes)
+  lineinfile:
+    dest: "{{ NGINX_CONF_PATH }}"
+    regexp: '^worker_processes'
+    line: "worker_processes {{ num_cores.stdout }};"
+    state: present
+  become: yes
+
+- name: Configure nginx.conf (worker_connections)
+  lineinfile:
+    dest: "{{ NGINX_CONF_PATH }}"
+    regexp: '\s*worker_connections'
+    line: "\tworker_connections {{ num_processes.stdout }};"
+    state: present
+  become: yes
+
+- name: "Configure nginx.conf (define nginx user:group as {{ NGINX_USER }}:{{ DEPLOY_USER }})"
+  lineinfile:
+    dest: "{{ NGINX_CONF_PATH }}"
+    regexp: '^user'
+    line: "user {{ NGINX_USER }} {{ DEPLOY_USER }};"
+    state: present
+  become: yes
+
+- name: Configure sites-available
+  template:
+    src: "nginx_sites_avail.j2"
+    dest: "{{ NGINX_SITES_AV }}/{{ APP }}"
+    owner: "{{ ROOT }}"
+    group: "{{ ROOT }}"
+    mode: "0644"
+  become: yes
+
+- name: Symlink to sites-enabled
+  file:
+    src: "{{ NGINX_SITES_AV }}/{{ APP }}"
+    dest: "{{ NGINX_SITES_EN }}/{{ APP }}"
+    state: link
+  notify: "restart nginx"
+  become: yes
+
+#- name: "Add nginx user ({{ NGINX_USER }}) to {{ DEPLOY_USER }} group"
+#  user:
+#    name: "{{ NGINX_USER }}"
+#    groups: "{{ DEPLOY_USER }}"
+#    append: yes
+#    createhome: no
+#  notify: "restart nginx"
+#  become: yes
+
+
+###############
+#     UFW     #
+###############
+
+- name: Allow SSH in firewall
+  ufw: rule=allow port=22
+  become: yes
+
+- name: Allow HTTP connections for Web server
+  ufw: rule=allow port=80
+  become: yes
+
+- name: Allow HTTPS connections for Web server
+  ufw: rule=allow port=443
+  become: yes
+
+- name: Enable ufw firewall
+  ufw: state=enabled
+  become: yes

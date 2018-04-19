@@ -1,0 +1,120 @@
+---
+
+#- name: Install virtualenv
+#  pip: name="virtualenv"
+#  become: yes
+
+#- name: "Create virtualenv under {{ VIRTUALENV_PATH }}"
+#  shell: "virtualenv -p python{{ PYTHON_VERSION }} {{ VIRTUALENV_PATH }}"
+#  args:
+#    executable: /bin/bash
+#    creates: "{{ VIRTUALENV_PATH }}"
+
+- name: "Install uWSGI (under {{ VIRTUALENV_NAME }})"
+  pip:
+    name: "{{ item }}"
+    virtualenv: "{{ VIRTUALENV_PATH }}"
+    virtualenv_command: pyenv
+  with_items: "{{ UWSGI_PACKAGES }}"
+
+- name: Configure uWSGI ini file
+  template:
+    src: uwsgi.ini.j2
+    dest: "{{ UWSGI_DIR_PATH }}/{{ UWSGI_INI_NAME }}"
+    owner: "{{ DEPLOY_USER }}"
+    group: "{{ DEPLOY_GROUP }}"
+    mode: "0644"
+  become: yes
+
+- name: Configure uWSGI systemd conf file
+  template:
+    src: uwsgi.service.j2
+    dest: "{{ SYSTEMD_SERVICES_PATH }}/{{ UWSGI_SYSTEMD_CONF_NAME }}"
+    owner: "{{ ROOT }}"
+    group: "{{ ROOT }}"
+    mode: 0777
+  notify:
+    - restart uwsgi
+    - restart nginx
+  become: yes
+
+- name: enable uWSGI to start on boot
+  systemd:
+    name: uwsgi
+    enabled: yes
+  become: yes
+
+
+# - name: Install virtualenvwrapper (will install virtualenv too)
+#   pip: name="virtualenvwrapper"
+#   become: yes
+
+# - name: "Put rendered virtualenvwrapper.j2 local file to remote {{ ansible_env.HOME }} dir as .venv_wrapper_rc "
+#   template:
+#     src: "virtualenvwrapper.j2"
+#     dest: "{{ ansible_env.HOME }}/.venv_wrapper_rc"
+#     owner: "{{ DEPLOY_USER }}"
+#     group: "{{ DEPLOY_GROUP }}"
+#     mode: "0644"
+
+# - name: Source .venv_wrapper_rc file into .bashrc
+#   lineinfile: dest="{{ ansible_env.HOME }}/.bashrc"
+#               line="source {{ ansible_env.HOME }}/.venv_wrapper_rc"
+
+# - name: Create virtualenv with virtualenvwrapper
+#   shell: "source {{ ansible_env.HOME }}/.bashrc && mkvirtualenv {{ VIRTUALENV_NAME }} -p $(which python{{ PYTHON_VERSION }})"
+#   args:
+#     executable: /bin/bash
+#     creates: "{{ ansible_env.HOME }}/{{ VIRTUALENV_DIR }}/{{ VIRTUALENV_NAME }}"
+
+# - name: Configure virtualenvwrapper
+#   lineinfile: dest="{{ ansible_env.HOME }}"/.bashrc
+#               line="export WORKON_HOME=$HOME/.virtualenvs"
+
+# - name: "Put rendered .pyenvrc local file to remote {{ ansible_env.HOME }}/.pyenv/ dir as .pyenvrc file"
+#   template:
+#     src: ".pyenvrc.j2"
+#     dest: "{{ PYENV_DIR }}/.pyenvrc"
+#     owner: "{{ DEPLOY_USER }}"
+#     group: "{{ DEPLOY_GROUP }}"
+#     mode: "0644"
+
+# - name: Source .pyenvrc file into .bashrc
+#   lineinfile: dest="{{ ansible_env.HOME }}/.bashrc"
+#               line="source {{ PYENV_DIR }}/.pyenvrc"
+
+# - name: Install Python interpreters "{{ PYENV_PYTHON_VERSIONS }}"
+#   shell: source {{ PYENV_DIR }}/.pyenvrc && pyenv install {{ item }} && pyenv rehash
+#   args:
+#     creates: "{{ PYENV_DIR }}/versions/{{ item }}/bin/python"  # a filename, when it already exists, this task will not be run.
+#     executable: /bin/bash
+#   with_items: "{{ PYENV_PYTHON_VERSIONS }}"
+
+# - name: Create virtual environments
+#   shell: source {{ PYENV_DIR }}/.pyenvrc && pyenv virtualenv {{ item.py_version }} {{ item.venv_name }} 
+#   args:
+#     creates: "{{ PYENV_DIR }}/versions/{{ item.venv_name }}/bin/python"  # a filename, when it already exists, this step will not be run.
+#     executable: /bin/bash
+#   with_items: "{{ PYENV_VIRTUALENVS }}"
+
+
+# - name: Configure pyenv
+#   lineinfile:
+#     path: ~/.bashrc
+#     line: "{{ item }}"
+#   with_items:
+#     - export PYENV_ROOT="$HOME/.pyenv"
+#     - export PATH="$PYENV_ROOT/bin:$PATH"
+#     # - export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+#     - eval "$(pyenv init -)"
+#     - eval "$(pyenv virtualenv-init -)"
+
+# - name: Install python inside pyenv
+
+
+# - name: Install requirements.txt
+#   pip: 
+#     requirements: ../requirements.txt
+#     virtualenv_command: pyenv
+#     virtualenv: /user/home/venvs/myenv
+#     virtualenv_python: python3.4

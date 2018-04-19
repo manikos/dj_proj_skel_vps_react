@@ -1,0 +1,38 @@
+# File types #
+##############
+*.swo
+*.swp
+*.swn
+*.seed
+*.csv
+*.dat
+*.out
+*.pid
+*.pyc
+*.gz
+
+
+# Directories #
+###############
+__pycache__/
+front_end/
+{{ project_name }}/automation/
+.idea/
+lib-cov
+pids
+results
+static_root/
+media_root/
+
+
+# Specific files #
+##################
+.sass-cache
+
+# OS generated files #
+######################
+.DS_Store
+ehthumbs.db
+Icon
+Thumbs.db
+*~

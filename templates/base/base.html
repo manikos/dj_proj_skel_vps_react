@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="{{ translation.get_language() }}">
+	<head>
+	    <meta charset="utf-8">
+		<meta name=viewport content="width=device-width, initial-scale=1">
+		<meta name='author' content='pidesign, info@pidesign.gr'>
+	    <title>
+		    {% block title %}
+		        {% if page_title %}{{ page_title }} | {% endif %}{{ SITE_TITLE }}
+	        {% endblock %}
+	    </title>
+	    <link rel="stylesheet" href="{{ static('css/style.css') }}">
+
+		{# Favicons #}
+        {# the classic one! #}
+        <link rel="icon" href="{{ static('img/favicons/favicon.ico') }}" type="image/x-icon">
+        {# iPhone - classic screen - iOS 7 #}
+        <link rel="apple-touch-icon" type="image/png" href="{{ static('img/favicons/apple-touch-icon-60x60.png') }}" sizes="60x60" >
+        {# most common used sizes for the browser to pick #}
+        <link rel="icon" type="image/png" href="{{ static('img/favicons/favicon-32x32.png') }}" sizes="32x32">
+        <link rel="icon" type="image/png" href="{{ static('img/favicons/favicon-194x194.png') }}" sizes="194x194">
+        <link rel="icon" type="image/png" href="{{ static('img/favicons/favicon-96x96.png') }}" sizes="96x96">
+        <link rel="icon" type="image/png" href="{{ static('img/favicons/android-chrome-192x192.png') }}" sizes="192x192">
+        <link rel="icon" type="image/png" href="{{ static('img/favicons/favicon-16x16.png') }}" sizes="16x16">
+	</head>
+
+	<body>
+		{% block content %}{% endblock %}
+	    <script src="{{ static('js/main.js') }}"></script>
+	</body>
+</html>

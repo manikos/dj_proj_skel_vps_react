@@ -1,0 +1,19 @@
+---
+
+- name: Web server setup
+  hosts: all
+  remote_user: "{{ DEPLOY_USER }}"
+  # pre_tasks:
+  #   - name: DEBUG
+  #     debug:
+  #       msg: "{{ansible_env}}"
+  vars_prompt:
+    - name: "bb_pwd"
+      prompt: "Enter bitbucket password"
+      private: yes
+    - name: "db_pwd"
+      prompt: "Enter database password"
+      private: yes
+  roles:
+    - setup
+  # when: ansible_os_family == "Debian"

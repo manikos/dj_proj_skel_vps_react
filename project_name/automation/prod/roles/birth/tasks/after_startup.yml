@@ -1,0 +1,34 @@
+---
+
+# 1. Modifies the sshd_config file to forbid future root access and also password access
+# 2. Creates the new user, new group and sets the prompted password for this new user.
+# 3. Copies local public key into new remote user's .ssh/ dir.
+# 4. Reloads the ssh service. No root ssh access after that. Also no password access after that. Only new user with ssh keys.
+
+#- include_vars: /home/nick/tmp/prod/group_vars/vault.yml
+
+- name: Modify sshd_config file as root
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^{{ item }} yes'
+    replace: '{{ item }} no'
+    backup: yes
+  with_items: [UsePAM, PermitRootLogin, PasswordAuthentication]
+    
+- name: Create new user
+  user:
+    name: "{{ DEPLOY_USER }}"
+    password: "{{ prompt_user_password }}"
+    skeleton: /etc/skel
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    createhome: yes
+    comment: "{{ DEPLOY_USER_COMMENT }}"
+  # register: new_user
+
+- name: Add remote authorized key
+  authorized_key: 
+    user: "{{ DEPLOY_USER }}"
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  notify: "restart ssh service"

@@ -1,0 +1,77 @@
+---
+
+# TO BE CHANGED!
+DOMAINS: ['my-domain.com', 'www.my-domain.com']  # used inside templates/nginx.conf.j2 to set the "server_name" directive
+APP: {{ project_name }}
+PYTHON_VERSION: 3.6.4
+EMAIL_FOR_FAIL2BAN: email_for_fail2ban@for.attack.notication
+##############################################
+
+# APP STUFF
+PROJ_NAME: "{% templatetag openvariable %} APP {% templatetag closevariable %}"
+APP_NAME: "{% templatetag openvariable %} APP {% templatetag closevariable %}_app"
+WEBAPPS_DIR_PATH: "{% templatetag openvariable %} ansible_env.HOME {% templatetag closevariable %}/webapps"     # /home/username/webapps/
+APP_DIR_PATH: "{% templatetag openvariable %} WEBAPPS_DIR_PATH {% templatetag closevariable %}/{% templatetag openvariable %} APP_NAME {% templatetag closevariable %}"  # /home/username/webapps/myapp_app/
+APP_PROJ_PATH: "{% templatetag openvariable %} APP_DIR_PATH {% templatetag closevariable %}/{% templatetag openvariable %} PROJ_NAME {% templatetag closevariable %}"    # /home/username/webapps/myapp_app/my_app/
+APP_STATIC_PATH: "{% templatetag openvariable %} APP_PROJ_PATH {% templatetag closevariable %}/static_root"     # /home/username/webapps/myapp_app/my_app/static_root/
+APP_MEDIA_PATH: "{% templatetag openvariable %} APP_PROJ_PATH {% templatetag closevariable %}/media_root"       # /home/username/webapps/myapp_app/my_app/media_root/
+
+# GIT STUFF (BB stands for BitBucket)
+BB_USERNAME: mavnikos
+BB_REPO_NAME: "{% templatetag openvariable %} PROJ_NAME {% templatetag closevariable %}"
+BB_ACCESS_KEYS_DIR_PATH: "{% templatetag openvariable %} APP_DIR_PATH {% templatetag closevariable %}/.access_keys"
+BB_PRIVATE_KEY_NAME: bb_rsa
+BB_PUBLIC_KEY_NAME: bb_rsa.pub
+BB_REPO_URL: "ssh://git@bitbucket.org/{% templatetag openvariable %} BB_USERNAME {% templatetag closevariable %}/{% templatetag openvariable %} BB_REPO_NAME {% templatetag closevariable %}.git"
+
+# USER STUFF
+ROOT: root
+DEPLOY_USER: nick
+DEPLOY_GROUP: "{% templatetag openvariable %} DEPLOY_USER {% templatetag closevariable %}"
+DEPLOY_USER_COMMENT: Nick Mavrakis
+
+# WEB SERVER STUFF
+NGINX_USER: www-data
+NGINX_DIR_PATH: /etc/nginx
+NGINX_CONF_PATH: "{% templatetag openvariable %} NGINX_DIR_PATH {% templatetag closevariable %}/nginx.conf"
+NGINX_SITES_AV: "{% templatetag openvariable %} NGINX_DIR_PATH {% templatetag closevariable %}/sites-available"
+NGINX_SITES_EN: "{% templatetag openvariable %} NGINX_DIR_PATH {% templatetag closevariable %}/sites-enabled"
+FAIL2BAN_DIR_PATH: "/etc/fail2ban"
+FAIL2BAN_JAIL_FILENAME: jail.local
+
+# DATABASE STUFF
+DB_NAME: "{% templatetag openvariable %} APP {% templatetag closevariable %}"
+DB_USER: "{% templatetag openvariable %} DEPLOY_USER {% templatetag closevariable %}"
+DB_URL: postgresql://{% templatetag openvariable %} DEPLOY_USER {% templatetag closevariable %}:{% templatetag openvariable %} DB_PASSWORD {% templatetag closevariable %}@localhost/{% templatetag openvariable %} APP_NAME {% templatetag closevariable %}
+
+# GIT REPO STUFF
+PYENV_REPO_NAME: https://github.com/pyenv/pyenv.git
+PYENV_VIRTUALENV_REPO_NAME: https://github.com/pyenv/pyenv-virtualenv.git
+
+# PYENV
+VIRTUALENV_NAME: "{% templatetag openvariable %} APP {% templatetag closevariable %}_env"
+PYENV_DIR_NAME: .pyenv
+PYENV_VERSIONS_DIR_NAME: versions
+PYENV_DIR_PATH: "{% templatetag openvariable %} ansible_env.HOME {% templatetag closevariable %}/{% templatetag openvariable %} PYENV_DIR_NAME {% templatetag closevariable %}"  # ~/.pyenv
+PYENV_VIRTUALENV_DIR_NAME: pyenv-virtualenv
+PYENV_VIRTUALENV_DIR_PATH: "{% templatetag openvariable %} PYENV_DIR_PATH {% templatetag closevariable %}/plugins/{% templatetag openvariable %} PYENV_VIRTUALENV_DIR_NAME {% templatetag closevariable %}"  # ~/.pyenv/plugins/pyenv-virtualenv
+VIRTUALENV_PATH: "{% templatetag openvariable %} PYENV_DIR_PATH {% templatetag closevariable %}/{% templatetag openvariable %} PYENV_VERSIONS_DIR_NAME {% templatetag closevariable %}/{% templatetag openvariable %} VIRTUALENV_NAME {% templatetag closevariable %}"
+
+# uWSGI STUFF
+UWSGI_PACKAGES: ['uwsgi', 'uwsgitop']
+UWSGI_DIR_PATH: "{% templatetag openvariable %} WEBAPPS_DIR_PATH {% templatetag closevariable %}/uwsgi"
+UWSGI_SOCKET_PATH: /tmp/uwsgi
+UWSGI_SOCKET_NAME: uwsgi.sock
+UWSGI_STATS_SOCKET_NAME: stats_uwsgi.sock
+UWSGI_INI_NAME: uwsgi.ini
+UWSGI_SYSTEMD_CONF_NAME: uwsgi.service
+
+# SYSTEM STUFF
+TMP_DIR_PATH: "{% templatetag openvariable %} ansible_env.HOME {% templatetag closevariable %}/tmp"
+SYSTEMD_SERVICES_PATH: /etc/systemd/system
+
+# SUPERVISOR STUFF
+SUPERVISOR_DIR_PATH: "{% templatetag openvariable %} WEBAPPS_DIR_PATH {% templatetag closevariable %}/supervisor"
+SUPERVISOR_LOG_DIR: "{% templatetag openvariable %} SUPERVISOR_DIR_PATH {% templatetag closevariable %}/logs"
+SUPERVISOR_LOG_NAME: supervisord.log
+SUPERVISOR_SOCKET_NAME: supervisor.sock

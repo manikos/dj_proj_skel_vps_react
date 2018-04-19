@@ -1,0 +1,48 @@
+---
+
+- name: Ensure "access keys" directory exists
+  file:
+    path: "{{ BB_ACCESS_KEYS_DIR_PATH }}"
+    owner: "{{ DEPLOY_USER }}"
+    group: "{{ DEPLOY_USER }}"
+    mode: 0700
+    state: directory
+
+- name: "Ensure that access keys exist (inside {{ BB_ACCESS_KEYS_DIR_PATH }})"
+  shell: "ssh-keygen -f {{ BB_ACCESS_KEYS_DIR_PATH }}/{{ BB_PRIVATE_KEY_NAME }} -N ''"
+  args:
+    executable: /bin/bash
+    creates: "{{ BB_ACCESS_KEYS_DIR_PATH }}/{{ BB_PRIVATE_KEY_NAME }}"
+
+- name: Read server's public deploy key
+  shell: "cat {{ BB_ACCESS_KEYS_DIR_PATH }}/{{ BB_PUBLIC_KEY_NAME }}"
+  args:
+    executable: /bin/bash
+  register: bb_public_key
+
+- name: Check if deploy key already exists
+  uri:
+    url: "https://api.bitbucket.org/1.0/repositories/{{ BB_USERNAME }}/{{ BB_REPO_NAME }}/deploy-keys"
+    method: GET
+    user: "{{ BB_USERNAME }}"
+    password: "{{ bb_pwd }}"
+    force_basic_auth: yes
+  register: key_exists
+
+- name: "Upload server's public key to {{ BB_REPO_NAME }} repo as a deploy key"
+  uri:
+    url: "https://api.bitbucket.org/1.0/repositories/{{ BB_USERNAME }}/{{ BB_REPO_NAME }}/deploy-keys"
+    method: POST
+    user: "{{ BB_USERNAME }}"
+    password: "{{ bb_pwd }}"
+    force_basic_auth: yes
+    body: "key={{ bb_public_key.stdout|urlencode }}&label={{ DEPLOY_USER }}_{{ BB_REPO_NAME }}"
+  when: not key_exists.json
+
+- name: Clone or pull latest web app code (ONLY for the first time)
+  git:
+    repo: "{{ BB_REPO_URL }}"
+    dest: "{{ APP_PROJ_PATH }}"
+    key_file: "{{ BB_ACCESS_KEYS_DIR_PATH }}/{{ BB_PRIVATE_KEY_NAME }}"
+    accept_hostkey: yes
+  when: not key_exists.json

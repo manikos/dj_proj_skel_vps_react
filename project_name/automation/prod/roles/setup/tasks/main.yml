@@ -1,0 +1,17 @@
+---
+
+- include_tasks: system.yml
+
+# Setup 3-tier architecture (Web server <--> Gateway server <--> Database server)
+- include_tasks: web_server.yml
+
+- include_tasks: database.yml
+
+- include_tasks: virtualenv.yml
+
+- include_tasks: gateway_server.yml
+
+# Project upload via git (bitbucket service)
+- include_tasks: bitbucket.yml
+
+- include_tasks: application.yml
